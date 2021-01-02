@@ -44,7 +44,9 @@ Future main(List<String> arguments) async {
   final output = <List<dynamic>>[
     ['date', 'daily cases'],
   ];
-  for (final dateTime in intermediate.keys) {
+  for (final dateTime in intermediate.keys.toList()
+    ..sort((a, b) =>
+        a.millisecondsSinceEpoch.compareTo(b.millisecondsSinceEpoch))) {
     final previous = intermediate[dateTime.subtract(const Duration(days: 1))];
     // Some data is wrong and produces negative daily cases
     if (previous != null && !(intermediate[dateTime] - previous).isNegative) {
