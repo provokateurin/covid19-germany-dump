@@ -41,8 +41,11 @@ Future main(List<String> arguments) async {
       intermediate[dateTime] += count;
     }
   }
-  final output = <List<dynamic>>[
+  final dailyOutput = <List<dynamic>>[
     ['date', 'daily cases'],
+  ];
+  final absoluteOutput = <List<dynamic>>[
+    ['date', 'absolute cases'],
   ];
   for (final dateTime in intermediate.keys.toList()
     ..sort((a, b) =>
@@ -50,15 +53,22 @@ Future main(List<String> arguments) async {
     final previous = intermediate[dateTime.subtract(const Duration(days: 1))];
     // Some data is wrong and produces negative daily cases
     if (previous != null && !(intermediate[dateTime] - previous).isNegative) {
-      output.add([
+      dailyOutput.add([
         '${dateTime.year}-${dateTime.month}-${dateTime.day}',
         intermediate[dateTime] - previous,
       ]);
+      absoluteOutput.add([
+        '${dateTime.year}-${dateTime.month}-${dateTime.day}',
+        intermediate[dateTime],
+      ]);
     }
   }
-  File('dump.csv')
-      .writeAsStringSync(const ListToCsvConverter().convert(output));
-  await run('gnuplot', ['-p', 'dump.plot']);
+  File('daily.csv')
+      .writeAsStringSync(const ListToCsvConverter().convert(dailyOutput));
+  File('absolute.csv')
+      .writeAsStringSync(const ListToCsvConverter().convert(absoluteOutput));
+  await run('gnuplot', ['-p', 'daily.plot']);
+  await run('gnuplot', ['-p', 'absolute.plot']);
 }
 
 Future run(String executable, List<String> arguments) async {
