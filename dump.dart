@@ -43,8 +43,15 @@ Future main(List<String> arguments) async {
       intermediate[dateTime] += count;
     }
   }
+  final daily = <int>[];
   final dailyOutput = <List<dynamic>>[
     ['date', 'daily cases'],
+  ];
+  final weeklyOutput = <List<dynamic>>[
+    ['date', 'weekly cases'],
+  ];
+  final monthlyOutput = <List<dynamic>>[
+    ['date', 'monthly cases'],
   ];
   final absoluteOutput = <List<dynamic>>[
     ['date', 'absolute cases'],
@@ -59,6 +66,19 @@ Future main(List<String> arguments) async {
         '${dateTime.year}-${dateTime.month}-${dateTime.day}',
         intermediate[dateTime] - previous,
       ]);
+      daily.add(intermediate[dateTime] - previous);
+      if (daily.length >= 7) {
+        weeklyOutput.add([
+          '${dateTime.year}-${dateTime.month}-${dateTime.day}',
+          daily.reversed.toList().sublist(0, 7).reduce((a, b) => a + b) / 7,
+        ]);
+      }
+      if (daily.length >= 30) {
+        monthlyOutput.add([
+          '${dateTime.year}-${dateTime.month}-${dateTime.day}',
+          daily.reversed.toList().sublist(0, 30).reduce((a, b) => a + b) / 30,
+        ]);
+      }
       absoluteOutput.add([
         '${dateTime.year}-${dateTime.month}-${dateTime.day}',
         intermediate[dateTime],
@@ -67,9 +87,15 @@ Future main(List<String> arguments) async {
   }
   File('daily.csv')
       .writeAsStringSync(const ListToCsvConverter().convert(dailyOutput));
+  File('weekly.csv')
+      .writeAsStringSync(const ListToCsvConverter().convert(weeklyOutput));
+  File('monthly.csv')
+      .writeAsStringSync(const ListToCsvConverter().convert(monthlyOutput));
   File('absolute.csv')
       .writeAsStringSync(const ListToCsvConverter().convert(absoluteOutput));
   await run('gnuplot', ['-p', 'daily.plot']);
+  await run('gnuplot', ['-p', 'weekly.plot']);
+  await run('gnuplot', ['-p', 'monthly.plot']);
   await run('gnuplot', ['-p', 'absolute.plot']);
 }
 
